@@ -82,7 +82,7 @@ jobs:
 
           echo "Using: limit=$LIMIT backfill_days=$BACKFILL include_closed=$INC_FLAG"
           # >>>> adjust the path below to your script <<<<
-          python scripts/universe_to_supabase.py \
+          python universe_to_supabase.py \
             --limit "$LIMIT" \
             --backfill-days "$BACKFILL" \
             $INC_FLAG | tee run.log
