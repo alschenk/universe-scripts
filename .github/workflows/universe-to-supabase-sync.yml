@@ -3,7 +3,7 @@ name: universe-to-supabase
 on:
   schedule:
     # Runs daily at 03:00 UTC (adjust to taste; schedules are UTC)
-    - cron: "0 3 * * *"
+    - cron: "0 3,15 * * *"
   workflow_dispatch:
     inputs:
       limit:
