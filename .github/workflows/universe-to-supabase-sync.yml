@@ -81,8 +81,8 @@ jobs:
           [ "${INC:-false}" = "true" ] && INC_FLAG="--include-closed" || INC_FLAG=""
 
           echo "Using: limit=$LIMIT backfill_days=$BACKFILL include_closed=$INC_FLAG"
-          # >>>> adjust the path below to your script <<<<
-          python universe_to_supabase.py \
+          # absolute path avoids cwd issues
+          python "$GITHUB_WORKSPACE/universe_to_supabase.py" \
             --limit "$LIMIT" \
             --backfill-days "$BACKFILL" \
             $INC_FLAG | tee run.log
