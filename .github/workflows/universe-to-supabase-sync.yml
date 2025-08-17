@@ -82,7 +82,7 @@ jobs:
 
           echo "Using: limit=$LIMIT backfill_days=$BACKFILL include_closed=$INC_FLAG"
           # absolute path avoids cwd issues
-          python universe_orders_to_supabase.py" \
+          python universe_orders_to_supabase.py \
             --limit "$LIMIT" \
             --backfill-days "$BACKFILL" \
             $INC_FLAG | tee run.log
