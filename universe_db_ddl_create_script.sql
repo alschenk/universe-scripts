@@ -155,7 +155,11 @@ CREATE INDEX IF NOT EXISTS ix_rate_normalized_name    ON public.rate(normalized_
 ALTER TABLE public.order_item VALIDATE CONSTRAINT order_item_rate_fk;
 ALTER TABLE public.rate       VALIDATE CONSTRAINT rate_rate_category_fk;
 
--- Replaceable view for Looker/Studio
+----------------------------------------
+-- Replaceable views for Looker/Studio
+----------------------------------------
+
+-- v_event_order_items
 DROP VIEW IF EXISTS v_event_order_items;
 CREATE VIEW v_event_order_items AS
 select 
@@ -171,3 +175,16 @@ from ticket_order to2
   inner join rate_category rc on r.rate_category_slug = rc.slug 
 where to2.state in ('PAID','ENDED','CLOSED')
 order by e.calendar_date, to2.created_at;
+
+-- v_event_rates
+DROP VIEW IF EXISTS v_event_rates;
+CREATE VIEW v_event_rates AS
+select
+  e.id as event_id, e.title as event_title, e.calendar_date as event_date, e.last_fetched_at,
+  r.normalized_name as rate_name, r.price as rate_price,
+  r.sold_count as rate_sold_count, r.max_quantity  as rate_max_quantity,
+  r.rate_category_slug, rc.name as rate_category_name
+from rate r
+  inner join event e on e.id = r.event_id
+  inner join rate_category rc on r.rate_category_slug = rc.slug
+order by e.calendar_date desc, r.name

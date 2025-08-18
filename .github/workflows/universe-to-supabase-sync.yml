@@ -2,8 +2,8 @@ name: universe-to-supabase
 
 on:
   schedule:
-    # Runs daily at 03:00 UTC (adjust to taste; schedules are UTC)
-    - cron: "0 3,15 * * *"
+    # Runs daily at 5,9,13,17,21 UTC (adjust to taste; schedules are UTC)
+    - cron: "0 5,9,13,17,21 * * *"
   workflow_dispatch:
     inputs:
       limit:
@@ -66,23 +66,23 @@ jobs:
       - name: Run loader
         env:
           # Your script reads these env vars
-          SUPABASE_PG_DSN: ${{ secrets.SUPABASE_POOLER_DSN }}
+          UNIVERSESCRIPT_POSTGRES_DSN: ${{ secrets.SUPABASE_POOLER_DSN }}
           # Defaults (used if not provided via workflow_dispatch)
-          UNIVERSE_PAGE_LIMIT: ${{ secrets.UNIVERSE_PAGE_LIMIT }}
-          WM_BACKFILL_DAYS: ${{ secrets.WM_BACKFILL_DAYS }}
+          UNIVERSESCRIPT_PAGE_LIMIT: ${{ secrets.UNIVERSESCRIPT_PAGE_LIMIT }}
+          UNIVERSESCRIPT_BACKFILL_DAYS: ${{ secrets.UNIVERSESCRIPT_BACKFILL_DAYS }}
         run: |
           set -euo pipefail
           # Resolve inputs with sensible defaults for both schedule & manual runs
           LIMIT="${{ github.event.inputs.limit }}"
-          LIMIT="${LIMIT:-${UNIVERSE_PAGE_LIMIT:-50}}"
+          LIMIT="${LIMIT:-${UNIVERSESCRIPT_PAGE_LIMIT:-50}}"
           BACKFILL="${{ github.event.inputs.backfill_days }}"
-          BACKFILL="${BACKFILL:-${WM_BACKFILL_DAYS:-7}}"
+          BACKFILL="${BACKFILL:-${UNIVERSESCRIPT_BACKFILL_DAYS:-7}}"
           INC="${{ github.event.inputs.include_closed }}"
           [ "${INC:-false}" = "true" ] && INC_FLAG="--include-closed" || INC_FLAG=""
 
           echo "Using: limit=$LIMIT backfill_days=$BACKFILL include_closed=$INC_FLAG"
           # absolute path avoids cwd issues
-          python universe_orders_to_supabase.py \
+          python universe_orders_to_postgres.py \
             --limit "$LIMIT" \
             --backfill-days "$BACKFILL" \
             $INC_FLAG | tee run.log

@@ -1,2 +1,3 @@
-universe_orders_to_supabase.exec
+universe_orders_to_postgres.exec
 universe_orders_to_csv.exec
+venv/**/*
