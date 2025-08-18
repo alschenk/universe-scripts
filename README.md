@@ -5,7 +5,7 @@ This repository contains Python scripts and SQL files for managing event data fr
 1. Fetching event orders and ticket data from Universe API
 2. Storing data in a PostgreSQL database
 3. Exporting event data to CSV
-4. Managing ticket rates and categories
+4. Managing ticket rates and categories for analysis
 
 ## Prerequisites
 
@@ -105,7 +105,7 @@ python universe_orders_to_csv.py \
 ## Workflow
 
 1. **Database Setup**:
-   - Create a new PostgreSQL database
+   - Create a new PostgreSQL database (e.g. with supabase)
    - Run the DDL script to create tables and views:
      ```bash
      psql -d your_database -f universe_db_ddl_create_script.sql
