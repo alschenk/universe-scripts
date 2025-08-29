@@ -1,0 +1,26 @@
+name: Mirror to public repo
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Configure SSH for deploy key
+        env:
+          DEPLOY_KEY: ${{ secrets.PUBLIC_REPO_DEPLOY_KEY }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf "%s" "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Push to public mirror
+        run: |
+          git remote add public git@github.com:alschenk/universe-scripts.git
+          git push --force public +refs/heads/*:refs/heads/*
+          git push --force --tags public
