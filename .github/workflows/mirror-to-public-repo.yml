@@ -1,7 +1,7 @@
-name: Mirror to public repo
+name: Mirror to public
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ]     # add more if needed
 
 jobs:
   mirror:
@@ -10,16 +10,38 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
-      - name: Configure SSH for deploy key
+      - name: Configure SSH for deploy key (robust)
         env:
-          DEPLOY_KEY: ${{ secrets.PUBLIC_REPO_DEPLOY_KEY }}
+          DEPLOY_KEY: ${{ secrets.PUBLIC_REPO_DEPLOY_KEY }}  # private key (multi-line)
         run: |
+          set -euo pipefail
           install -m 700 -d ~/.ssh
-          printf "%s" "$DEPLOY_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          # 1) write key; strip any CR from Windows line endings
+          printf '%s' "$DEPLOY_KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # 2) fail fast if the key is passphrased/corrupt
+          ssh-keygen -y -f ~/.ssh/deploy_key > ~/.ssh/deploy_key.pub
+          # 3) show the fingerprint we will present to GitHub (safe to print)
+          echo "Public key fingerprint on runner:"
+          ssh-keygen -lf ~/.ssh/deploy_key.pub
+          # 4) force SSH to use only this key
+          cat >> ~/.ssh/config <<'EOF'
+          Host github.com
+            User git
+            HostName github.com
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          EOF
+          # 5) trust GitHub host key
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+          # 6) quick connectivity check (non-fatal)
+          ssh -T git@github.com || true
 
-      - name: Push to public mirror
+      - name: Push to public (force mirror branches + tags)
+        env:
+          # belt-and-suspenders: force this identity for these git commands
+          GIT_SSH_COMMAND: ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=~/.ssh/known_hosts
         run: |
           git remote add public git@github.com:alschenk/universe-scripts.git
           git push --force public +refs/heads/*:refs/heads/*
